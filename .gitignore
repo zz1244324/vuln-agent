@@ -1,0 +1,21 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# ★ 密钥与本地配置：绝不入库
+.env
+.env.*
+!.env.example
+
+# 运行产物
+llm_results.json
+reports/
+*.db
+.pytest_cache/
