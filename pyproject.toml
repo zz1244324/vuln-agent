@@ -1,10 +1,10 @@
 [project]
 name = "vuln-agent"
 version = "0.1.0"
-description = "Add your description here"
+description = "A noise filter for pip-audit results: drops name-collision false positives, dedupes advisories, and explains what is left with an LLM."
 readme = "README.md"
 authors = [
-    { name = "zz1244324", email = "3560678192@qq.com" }
+    { name = "zz1244324" }
 ]
 requires-python = ">=3.12"
 dependencies = [
