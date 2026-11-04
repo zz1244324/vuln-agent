@@ -4,8 +4,7 @@ import requests
 import time
 import sqlite3
 from dotenv import load_dotenv
-
-
+import argparse
 
 load_dotenv()
 
@@ -94,8 +93,8 @@ def result(evidence):
     data=resp.json()
     return {"ok": True, "data":data, "raw": data["choices"][0]["message"]["content"], "tokens": data["usage"]}
 
-def sql_connect():
-    conn = sqlite3.connect(r"C:\Users\Busilin\Desktop\vuln-pocs\result.db")
+def sql_connect(db_path):
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     rows = conn.execute("SELECT template_name, url, detail, status_code FROM records WHERE status='hit' and detail != '' GROUP BY template_name, url").fetchall()
     conn.row_factory = sqlite3.Row
@@ -127,7 +126,12 @@ def build_evidences(rows):
 
 
 def main() -> None:
-    rows = sql_connect()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("db", help="vuln-pocs 的 result.db 路径")
+    parser.add_argument("--out", default="llm_results.json", help="输出 JSON 路径")
+    args = parser.parse_args()
+
+    rows = sql_connect(args.db)
     evs = build_evidences(rows)
     print(f"读到 {len(rows)} 条，可用 {len(evs)} 条")
 
@@ -150,6 +154,6 @@ def main() -> None:
 
     print(f"成功 {ok} / 失败 {fail}")
 
-    with open(r"C:\Users\Busilin\Desktop\llm\report\llm_results.json", "w", encoding="utf-8") as f:
+    with open(args.out, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
 

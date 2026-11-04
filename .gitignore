@@ -21,3 +21,7 @@ llm_results.json
 reports/
 *.db
 .pytest_cache/
+
+# ★ 本地交接文档（AI 维护，公开仓库绝不入库）
+AGENTS.md
+PRIVATE.md
