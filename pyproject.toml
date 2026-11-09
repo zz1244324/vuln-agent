@@ -14,6 +14,7 @@ dependencies = [
 
 [project.scripts]
 vuln-agent = "vuln_agent:main"
+vuln-agent-filter = "vuln_agent.filter:main"
 
 [build-system]
 requires = ["uv_build>=0.12.9,<0.13.0"]
