@@ -21,9 +21,8 @@
 
 ### 复现
 
-uv run vuln-agent-filter #pip-audit 输出的 audit.json 路径 
---site-packages #被审计项目的 site-packages 目录
---out #结果存放位置
+uv run vuln-agent-filter <audit.json 路径> --site-packages <site-packages 目录> --out <输出文件>
+
 
 
 
