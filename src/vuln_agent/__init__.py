@@ -39,10 +39,10 @@ FACTS = {   # 模板名: (family, cve, severity, fix_hint)
 def send(evidence):
 
     resp = requests.post(
-        "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+        os.environ["LLM_BASE_URL"],
         headers={"Authorization": f"Bearer {os.environ['LLM_KEY']}"},
         json={
-            "model": "glm-4-flash",
+            "model": os.environ["LLM_MODEL"],
             "messages": [
                 {
                     "role": "system",
