@@ -1,13 +1,13 @@
 import json
 import sys
 from pathlib import Path
-import os
+
 import argparse
 
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-
+#audit文件路径,做json处理
 def load_audit(path):
 
     with open(path, encoding="utf-8") as f:
@@ -15,13 +15,16 @@ def load_audit(path):
 
     return text
 
+#自家包判断,site_packages为库资源目录
 def self_package(site_packages,name,version):
     marker = Path(site_packages) / f"{name}-{version}.dist-info" / "direct_url.json"
-    if os.path.exists(marker):
-        return True
-    else:
+    if not marker.exists():
         return False
-
+    with open(marker, encoding="utf-8") as f:
+        info = json.load(f)
+    return "dir_info" in info
+#过滤函数
+#deps为load_audit(path)输出文件,site_packages为库资源目录
 def filter_audit(deps,site_packages):
 
     drop=[]
@@ -60,5 +63,7 @@ def main():
     print(f"keep/drop:{len(keep)}/{len(drop)}")
     
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+
+    #输出过滤结果文件
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump({"keep": keep, "drop": drop}, f, ensure_ascii=False, indent=2)

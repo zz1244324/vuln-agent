@@ -9,7 +9,7 @@
 | jinja2   | 3.1.2 | 10 |  5 | 5 | duplicate-of ×5 |
 | requests | 2.31.0 |  6 |  3 | 3 | duplicate-of ×3 |
 | pyyaml   | 5.3.1 |  2 |  0 | 2 | self-package ×2 |
-| 合计     |       | 36 | 18 | 18 | |
+| 合计     |       | 36 | 18 | 18 |  |
 
 ### 这两类删除不是一回事
 
@@ -18,10 +18,11 @@
 - **self-package（2 条）**：`pyyaml` 这个名字恰好撞上 PyPI 上真有的同名包，
   但它是本地自建的。pip-audit 的判据只有"包名 + 版本"，永远分不出这两种，
   **这才是本工具独有的能力**。
+  抽核 18 条删除，16 条 duplicate-of 均对应同包内同 id 的二次出现、2 条 self-package 的 direct_url.json 为 dir_info.editable，误删 0
 
 ### 复现
 
-uv run vuln-agent-filter <audit.json 路径> --site-packages <site-packages 目录> --out <输出文件>
+uv run vuln-agent-filter <audit.json 路径> --site-packages <site-packages 目录> --out <输出文件地址>
 
 
 
