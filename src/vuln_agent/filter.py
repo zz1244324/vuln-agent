@@ -1,7 +1,7 @@
 import json
 import sys
 from pathlib import Path
-
+import ast
 import argparse
 
 
@@ -25,20 +25,25 @@ def self_package(site_packages,name,version):
     return "dir_info" in info
 #过滤函数
 #deps为load_audit(path)输出文件,site_packages为库资源目录
-def filter_audit(deps,site_packages):
+def filter_audit(deps,site_packages,source):
 
     drop=[]
     keep=[]
+    imports,skipped,failed=scan_imports(source)
+    print(f"import扫描结果 : skipped/failed:{skipped}/{failed}")
     for i in deps:
         if i.get("vulns"):
             name=(i.get("name"))
             version=(i.get("version"))
             vuln_id=set()
-        
+
             
             if self_package(site_packages,name,version):
                 for j in i.get("vulns"):
                     drop.append({"package": name, "version":version, "vuln_id":j.get("id"),  "reason": "self-package"})
+            elif name not in imports:
+                for j in i.get("vulns"):
+                    drop.append({"package": name, "version":version, "vuln_id":j.get("id"),  "reason": "not-imported"})
             else:
                 for j in i.get("vulns"):
                     if j.get("id") not in vuln_id:
@@ -47,21 +52,57 @@ def filter_audit(deps,site_packages):
                     else:
                         drop.append({"package": name, "version":version, "vuln_id":j.get("id"),  "reason": f"duplicate-of:{j.get('id')}"})
 
+
+
     return keep,drop
 
+#当前目录做import检查
+def scan_imports(source_dir):
+    SKIP_DIRS = {".venv", "venv", "env", "site-packages", "__pycache__", ".git"}
+    imports = set()
+    skipped = 0
+    failed = 0
+    for py_file in Path(source_dir).rglob("*.py"):
+        if any(skip_dir in py_file.parts for skip_dir in SKIP_DIRS):
+            skipped += 1
+            continue
+        try:
+            text = py_file.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            failed += 1
+            continue
+        try:
+            tree = ast.parse(text)
+        except SyntaxError:
+            failed += 1
+            continue
+
+        for n in ast.walk(tree):
+            if isinstance(n, ast.Import):
+                for alias in n.names:
+                    imports.add(alias.name.split(".")[0])
+            elif isinstance(n, ast.ImportFrom):
+                if n.level == 0 and n.module:
+                    imports.add(n.module.split(".")[0])      
+
+    return imports,skipped,failed
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("audit", type=Path, help="pip-audit 输出的 audit.json 路径")
     parser.add_argument("--site-packages", type=Path, required=True, help="被审计项目的 site-packages 目录")
+    parser.add_argument("--source", type=Path, required=True, help="审计的目录")
     parser.add_argument("--out", default="filter_results.json", help="输出 JSON 路径")
     args = parser.parse_args()
 
-    keep,drop=filter_audit(load_audit(args.audit),args.site_packages)
-
+ 
+    keep,drop=filter_audit(load_audit(args.audit),args.site_packages,args.source)
+    
+    if not imports:
+        parser.error("没有扫到任何 import")
 
     print(f"keep/drop:{len(keep)}/{len(drop)}")
-    
+
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
 
     #输出过滤结果文件
